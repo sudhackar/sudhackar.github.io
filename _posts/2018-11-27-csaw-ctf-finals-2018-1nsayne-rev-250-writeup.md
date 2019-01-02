@@ -3,6 +3,7 @@ layout: post
 title: "CSAW CTF Finals 2018 1nsayne rev-250 writeup"
 date: 2018-11-27 10:10:00 +0530
 categories: blog
+tags: [reversing, radare2]
 ---
 
 # 1nsayne (rev-250) 
