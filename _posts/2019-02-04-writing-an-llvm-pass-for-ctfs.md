@@ -180,7 +180,7 @@ while(obfuscated < level){
 }
 ```
 
-It iterates over a all instructions in a function and checks if they one of ^, | , +, -. Such operators are pushed in a set so that we can work on them later. Later we'll replace each binary operator with a switch-case by calling `AddSwitch` which is where the actual magic happens.
+It iterates over all instructions in a function and checks if they are one of ^, \| , +, -. Such operators are pushed in a set so that we can work on them later. Later we'll replace each binary operator with a switch-case by calling `AddSwitch` which is where the actual magic happens.
 
 
 ```cpp
