@@ -182,7 +182,7 @@ Based on the hash comparison it creates a thread with another function.
 
 When run without a debugger `boi2` is the first to get loaded in the elf. bois
 work upon a vm context passed as `ctx` here. The context has general purpose
-regsiters, call stack, instruction pointers, different opcodes to red flag,
+registers, call stack, instruction pointers, different opcodes to red flag,
 check length, verify bytes - correct/incorrect. To analyze all bois in IDA we
 load them up in the same IDB and create structs and enums for the VM. This takes
 the most time in a VM based challenge.
@@ -343,6 +343,164 @@ handler function then writes to the code page and calls it with `ctx`.
   return result;
 ```
 There were around 10 states and 10 registers to reverse.
-The solution is based around the source code that was released
-[here](https://github.com/osirislab/CSAW-CTF-2019-Finals/tree/master/rev/mystery_boi/distribute)
-after the CTF.
+To undertstand the call flow between the bois, we wrote a simple pintool that
+dumps all the instructions executed.
+
+This dump had a pattern of verifying bytes like this
+```asm
+mov     rax, [rdi+0x48]
+cmp     rax, 0x75
+```
+
+`rdi+0x48` contains the current byte being verified. We hook these instructions
+and analyze the pattern wrto the set flag format of 30 bytes.
+Here's the pintool we used.
+
+```cpp
+#include "pin.H"
+#include <fstream>
+#include <stdio.h>
+#include <unistd.h>
+
+using namespace std;
+PIN_LOCK globalLock;
+KNOB<string> KnobOutputFile(KNOB_MODE_WRITEONCE, "pintool", "o", "pin.out",
+                            "specify output file name");
+ofstream outFile;
+ADDRINT l, h;
+
+VOID log_cmp(CONTEXT *ctx) {
+    PIN_REGISTER regval;
+    PIN_GetContextRegval(ctx, REG_RDI, reinterpret_cast<UINT8 *>(&regval));
+    ADDRINT *byte_ptr = (ADDRINT *)(regval.qword[0] + 0x48);
+    ADDRINT value;
+    PIN_GetLock(&globalLock, 1);
+    PIN_SafeCopy(&value, byte_ptr, sizeof(ADDRINT));
+    PIN_ReleaseLock(&globalLock);
+    outFile << std::hex << value << endl;
+}
+
+VOID load_boi_log(CONTEXT *ctx) {
+    PIN_REGISTER regval;
+    char boi_name[0x100], file_path[100];
+    PIN_GetContextRegval(ctx, REG_RAX, reinterpret_cast<UINT8 *>(&regval));
+    sprintf(file_path, "/proc/self/fd/%d", int(regval.byte[0]));
+    readlink(file_path, boi_name, 0x100);
+    outFile << boi_name << " loaded" << endl;
+}
+
+VOID callback_instruction(INS ins, VOID *v) {
+
+    if (INS_Opcode(ins) == XED_ICLASS_MOV &&
+        INS_OperandReg(ins, 0) == REG_RAX &&
+        INS_MemoryBaseReg(ins) == REG_RDI &&
+        INS_OperandMemoryDisplacement(ins, 1) == 0x48) {
+        INS_InsertCall(ins, IPOINT_AFTER, (AFUNPTR)log_cmp, IARG_CONTEXT,
+                       IARG_END);
+    }
+    if (INS_Address(ins) == 0x401331) {
+        INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)load_boi_log, IARG_CONTEXT,
+                       IARG_END);
+    }
+}
+
+VOID fini(INT32 code, VOID *v) { outFile.close(); }
+
+int main(int argc, char *argv[]) {
+    if (PIN_Init(argc, argv)) {
+        perror("init");
+        return 0;
+    }
+    outFile.open(KnobOutputFile.Value().c_str());
+    INS_AddInstrumentFunction(callback_instruction, 0);
+    PIN_AddFiniFunction(fini, 0);
+    PIN_StartProgram();
+    return 0;
+}
+```
+When given input ABCDEFGHIJKLMNOPQRTSUVWXYZ123
+
+Output looks like
+
+```
+/tmp/boi/boi2 loaded
+/tmp/boi/boi4 loaded
+/tmp/boi/boi2 loaded
+/tmp/boi/boi5 loaded
+/tmp/boi/boi2 loaded
+/tmp/boi/boi3 loaded
+/tmp/boi/boi6 loaded
+/tmp/boi/boi3 loaded
+/tmp/boi/boi7 loaded
+/tmp/boi/boi8 loaded
+/tmp/boi/boi10 loaded
+41
+/tmp/boi/boi10 loaded
+41
+/tmp/boi/boi10 loaded
+41
+...
+126 lines
+```
+Each verification only compares the first byte 'A' and exits.
+
+When given input flag{AAAAAAAAAAAAAAAAAAAAAAA}
+
+Output looks like
+
+```
+/tmp/boi/boi2 loaded
+/tmp/boi/boi4 loaded
+/tmp/boi/boi2 loaded
+/tmp/boi/boi5 loaded
+/tmp/boi/boi2 loaded
+/tmp/boi/boi3 loaded
+/tmp/boi/boi6 loaded
+/tmp/boi/boi3 loaded
+/tmp/boi/boi7 loaded
+/tmp/boi/boi8 loaded
+/tmp/boi/boi10 loaded
+66
+/tmp/boi/boi10 loaded
+66
+/tmp/boi/boi10 loaded
+66
+/tmp/boi/boi10 loaded
+...
+441 lines
+```
+
+Here eventually checks pass for "flag{" and then exits.
+This means the check happens byte by byte even though some of the checks are
+bogus.
+
+This is great for doing a side channel attack such as instruction counting. Pin
+comes with an instruction count pintool which is easy enough to use in scripts.
+
+```
+import os
+import string
+flag = ["A" for i in xrange(30)]
+for i, j in enumerate("flag{jk_there_was_"):
+    flag[i] = j
+flag[29] = '}'
+for j in xrange(18,29):
+    cc = []
+    for i in string.lowercase+"_":
+        flag[j] = i
+        ff = open("ff", "w")
+        ff.write("".join(flag))
+        ff.close()
+        os.system("~/tools/pin/pin -t ~/tools/pin/source/tools/ManualExamples/obj-intel64/inscount0.so -- ./mystery_boi < ff")
+        ic = open("inscount.out")
+        ic = int(ic.read().split()[1])
+        cc.append((i, ic))
+        print (i, ic)
+    yy = sorted(cc, key=lambda tup: tup[1], reverse=True)
+    flag[j] = yy[0][0]
+    print "".join(flag)
+```
+
+This will run for some time and give the flag.
+
+> flag{jk_there_was_no_mystery}
