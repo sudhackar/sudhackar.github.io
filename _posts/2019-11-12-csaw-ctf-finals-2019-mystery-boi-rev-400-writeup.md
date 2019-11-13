@@ -1,4 +1,3 @@
-
 ---
 layout: post
 title: "CSAW CTF Finals 2019 mystery boi rev-400 writeup"
