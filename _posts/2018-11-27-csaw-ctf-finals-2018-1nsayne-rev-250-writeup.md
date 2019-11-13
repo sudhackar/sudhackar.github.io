@@ -6,12 +6,12 @@ categories: blog
 tags: [reversing, radare2]
 ---
 
-# 1nsayne (rev-250) 
+# 1nsayne (rev-250)
 
 We are given a  [binary](https://github.com/ByteBandits/writeups/tree/master/csaw-finals-2018/reverse/1nsayne).
 
 ```sh
-$ file 1nsayne 
+$ file 1nsayne
 1nsayne: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, stripped
 ```
 
@@ -60,7 +60,7 @@ Its printing some message byte-by-byte with some `sleep` in between. This should
 Even then it took more than a minute to print this much
 
 ```sh
-$ LD_PRELOAD=~/tools/preeny/build_x64/lib/libdesleep.so ./1nsayne 
+$ LD_PRELOAD=~/tools/preeny/build_x64/lib/libdesleep.so ./1nsayne
 so0per_cool
 hi! flag is
 ```
@@ -122,7 +122,7 @@ As for the arrays 0x604088 has been initialized with some values and 0x604308 is
 [0x00604088]> s 0x604308
 [0x00604308]> pxq 16
 0x00604308  0x0000000000000000  0x0000000000000000   ................
-[0x00604308]> 
+[0x00604308]>
 ```
 
 The logic to dump chars is now
@@ -174,7 +174,7 @@ Seeking to the start of the current function we see that `mod` is set by some fl
 │       │   0x00402bb0      bf451c6b63     mov edi, 0x636b1c45
 ```
 
-So `mod` should be a static value for this case. 
+So `mod` should be a static value for this case.
 Looking around in Visual mode we can find that `some_value` is set directly from calling `fcn.00401b60` with `local_8h` as an argument
 
 ```sh
@@ -202,7 +202,7 @@ Looking around in Visual mode we can find that `some_value` is set directly from
 ```
 
 After `some_value` is called, `local_5dh` is set by calling `sub.sqrt_8a0` and depending on its value the character is printed
-so now the eventual code is 
+so now the eventual code is
 
 ```python
 idx = 0
@@ -225,9 +225,9 @@ graph for `fcn.00401b60`
 ![sub.sqrt_8a0](https://i.imgur.com/nP1RF5d.png)
 
 
-Both functions take one argument and don't change any global variable. They call themselves recrsively or other functions with time consuming code. They have unnecessary loops and jumps that cause the program to run slow. We have seen similar challs in CTFs where simple constructs are written to waste time/CPU resources. We need to simplify these functions.
+Both functions take one argument and don't change any global variable. They call themselves recursively or other functions with time consuming code. They have unnecessary loops and jumps that cause the program to run slow. We have seen similar challs in CTFs where simple constructs are written to waste time/CPU resources. We need to simplify these functions.
 
-I tried to dynamically analyze using r2pipe the functions using this code. 
+I tried to dynamically analyze using r2pipe the functions using this code.
 
 ```python
 import r2pipe
@@ -281,8 +281,8 @@ What I'm doing here is I'm calling `fcn.00401b60` and `sub.sqrt_8a0` with argume
 [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269]
 [0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1]
  ```
- 
- First output is fibonacci numbers, so  `fcn.00401b60(i)` returns `fibonacci(i)`. This computation is recursive with no memoization. Thats why it was taking a lot of time for later bytes of the flag. 
+
+ First output is fibonacci numbers, so  `fcn.00401b60(i)` returns `fibonacci(i)`. This computation is recursive with no memoization. Thats why it was taking a lot of time for later bytes of the flag.
 
 For second output `sub.sqrt_8a0(i)` returns if `i` is prime or not.
 
@@ -296,7 +296,7 @@ For second output `sub.sqrt_8a0(i)` returns if `i` is prime or not.
 0x000000000000002d
 ```
 
-Final code to dump the flag 
+Final code to dump the flag
 
 ```python
 from Crypto.Util.number import isPrime

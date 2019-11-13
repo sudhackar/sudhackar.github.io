@@ -18,7 +18,7 @@ The idea was to keep the challenge simple enough yet tricky so that it can't be 
 If you're not into reverse engineering/compilers you might need to look into these terms
 
 ### [Basic Block](https://en.wikipedia.org/wiki/Basic_block)
-A basic block(bb) is a piece of code in the program which only has one path of execution - a stright line. There will be no braches/loops inside a basic block except at the end which means if we execute the first line we will execute all lines in that basic block. This concept is not just in assembly but also compilers in the context of generated code, analyzed code and intermediate code.
+A basic block(bb) is a piece of code in the program which only has one path of execution - a straight line. There will be no branches/loops inside a basic block except at the end which means if we execute the first line we will execute all lines in that basic block. This concept is not just in assembly but also compilers in the context of generated code, analyzed code and intermediate code.
 
 ### [Control Flow](https://en.wikipedia.org/wiki/Control_flow_graph)
 A control flow graph defines the paths of execution in a program. The nodes are usually basic blocks in a CFG. To keep a picture in perspective
@@ -44,7 +44,7 @@ An opaque predicate is a condition in a code whose value we know at compile time
 The LLVM Project is a collection of modular and reusable compiler and toolchain technologies. It is a great project to implement your own compilers or play around with static analysis of code. These libraries are built around a well specified code representation known as the LLVM intermediate representation ("LLVM IR"). LLVM IR makes it easier to write automated analysis by exposing APIs to change it at will.
 
 # LLVM Pass
-When some C code is passed through a compiler it goes through a number of steps - parsing, lexing, semantic analysis, IR code gen, optimizations and native code gen respectively. LLVM as a project offers you to just write a frontend for a language of your choice which parses your specific language and emits LLVM IR. LLVM project then has all the proper backends and analysis/optimizations built in to generate a binary. Passes perform the transformations and optimizations that make up the compiler, they build the analysis results that are used by these transformations, and they are, above all, a structuring technique for compiler code. 
+When some C code is passed through a compiler it goes through a number of steps - parsing, lexing, semantic analysis, IR code gen, optimizations and native code gen respectively. LLVM as a project offers you to just write a frontend for a language of your choice which parses your specific language and emits LLVM IR. LLVM project then has all the proper backends and analysis/optimizations built in to generate a binary. Passes perform the transformations and optimizations that make up the compiler, they build the analysis results that are used by these transformations, and they are, above all, a structuring technique for compiler code.
 
 If we want to instrument a program at compile time, a pass would be the best way to achieve that.
 
@@ -62,7 +62,7 @@ a = b + c;
 ...
 ```
 
-This will usually be just a couple of instructions in assembly - normal stuff. 
+This will usually be just a couple of instructions in assembly - normal stuff.
 
 ### Idea 1
 
