@@ -8,7 +8,7 @@ tags: [reversing, ida, pintool]
 
 [gynvael](https://twitter.com/gynvael) submitted a challenge for winja CTF which was held onsite at [Nullcon](https://nullcon.net/website/) 2018. AFAIK no team there was able to solve it. 
 
-While looking at my inbox recently I found the challenge files and finally decided to give it a try. I don't have a description of the chall, just have the file. It was a reversing challenge and a pyc was provided.
+While looking at my inbox recently I found the challenge files and finally decided to give it a try. I don't have a description of the chall, just have the file. It was a reversing challenge and a pyc was provided. You can download the challenge [here](https://drive.google.com/file/d/16rn-I7I24m-V5mSQC3fINbf34bZP6W5Y/view?usp=sharing)
 
 ```sh
 $ file risky.pyc
@@ -707,4 +707,4 @@ print("".join(chr(f.solver.eval(f.memory.load(flag_addr+i, 1)))
 
 This ran for about 15 minutes and gave the same flag. Guess I could have saved quite a bit of time.
 
-Thanks @gynvael for the great chall. You can download the challenge [here](https://drive.google.com/file/d/16rn-I7I24m-V5mSQC3fINbf34bZP6W5Y/view?usp=sharing)
+Thanks @gynvael for the great chall.
