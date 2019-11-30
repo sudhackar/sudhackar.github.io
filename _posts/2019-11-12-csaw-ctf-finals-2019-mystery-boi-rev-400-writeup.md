@@ -44,7 +44,7 @@ For this we implemented `__libc_start_main` in the so and sent it to the server.
 We got a shell and found a ELF `mystery_boi` and multiple other small files -
 boi0, boi1 ..., boi26 - we'll call the bois for now.
 
-We wrote other .so that reads and hex-dumps out files to stdout. This file is
+We wrote another .so that reads and hex-dumps out files to stdout. This file is
 loosely based on the challenge author's
 [own](https://github.com/Tnek/dumb-unpacker/blob/master/fake.c)
 
@@ -140,20 +140,22 @@ referenced in `_init_array`. It has code similar to this
     exit(1);
   }
 ```
-These checks go on for a lot of functions which were imported.
+These checks go on for a lot of functions which were imported. This verifies if
+some of these functions are not from the libc and have been implemented in
+another shared object.
 
-Another function is called from this function that verifies the hash of
+Another function is called from this function that verifies the checksum of
 .text section
 ```c
   curr = (unsigned __int8 *)&start;
-  hash = 0;
+  checksum = 0;
   v2 = 0;
   v3 = 0;
   while ( curr != (unsigned __int8 *)0x401BED )
   {
     if ( v3 == 8 )
     {
-      hash ^= v2;
+      checksum ^= v2;
       v2 = 0;
       v3 = 0;
     }
@@ -161,12 +163,12 @@ Another function is called from this function that verifies the hash of
     ++v3;
     ++curr;
   }
-  result = text_hash;
-  if ( hash != text_hash )
+  result = text_checksum;
+  if ( checksum != text_checksum )
 ```
 
 This is probably done to test any software breakpoints set in the `.text`.
-Based on the hash comparison it creates a thread with another function.
+Based on the checksum comparison it creates a thread with another function.
 
 ```c
   boi_count = 0;
@@ -180,12 +182,13 @@ Based on the hash comparison it creates a thread with another function.
   handle_boi(v1, ctx);
 ```
 
-When run without a debugger `boi2` is the first to get loaded in the elf. bois
-work upon a vm context passed as `ctx` here. The context has general purpose
-registers, call stack, instruction pointers, different opcodes to red flag,
-check length, verify bytes - correct/incorrect. To analyze all bois in IDA we
-load them up in the same IDB and create structs and enums for the VM. This takes
-the most time in a VM based challenge.
+When run without a debugger `boi2` is the first to get loaded in the mystery_boi.
+bois work upon a vm context passed as `ctx` here. The context has general
+purpose registers, call stack, instruction pointers, different opcodes to read
+flag, check length, verify bytes - correct/incorrect. To analyze all bois in IDA
+we load them up in the same IDB and create structs and enums for the VM. This
+takes the most time in a VM based challenge. We need to analyze operations and
+corresponding opcodes, control flow and the logic for flag verification.
 
 Here's the script to load all the bois to page aligned functions in the current
 idb of `mystery_boi`
@@ -248,7 +251,7 @@ struct ctx
   void *stack;
   int *fd_stack;
   int current_boi;
-  int * flag;
+  int *flag;
   __int64 registers[13];
 };
 ```
@@ -343,7 +346,7 @@ handler function then writes to the code page and calls it with `ctx`.
   return result;
 ```
 There were around 10 states and 10 registers to reverse.
-To undertstand the call flow between the bois, we wrote a simple pintool that
+To understand the call flow between the bois, we wrote a simple pintool that
 dumps all the instructions executed.
 
 This dump had a pattern of verifying bytes like this
@@ -470,7 +473,7 @@ Output looks like
 441 lines
 ```
 
-Here eventually checks pass for "flag{" and then exits.
+Here eventually checks pass for "flag{" and fail for "AAA...".
 This means the check happens byte by byte even though some of the checks are
 bogus.
 
