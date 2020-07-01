@@ -284,3 +284,6 @@ while todo:
 
 Once a solution is found for the 2 paths from a basic block, constraints on expressions from `expr_map` - bytes of "flag" string can be solved and concretized.
 Since the checks are progressive, this will eventually solve all the constraints upto the good boy block - Level Unlocked
+
+
+Full script can be found [here](https://gist.github.com/sudhackar/ad9c15851f274b3248ef1645abee9ae8#file-miasm_ctf_bin-py)
