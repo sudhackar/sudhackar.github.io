@@ -10,6 +10,6 @@ Contact Me:
 
 [twitter](https://twitter.com/_sudhackar)
 
-[linkedin](https://www.linkedin.com/in/sudhackar/)
-
 [facebook](https://www.fb.com/sudhackar)
+
+[stackexchange](https://reverseengineering.stackexchange.com/users/14622/sudhackar)
