@@ -8,7 +8,7 @@ tags: [reversing, radare2, r2pipe, angr, qiling]
 
 ### INCTF
 
-I had some time this weekend. [INCTF](https://ctf.inctf.in) was running, so I decided to try reversing challenges for sometime. Here are the writeups I managed to solve.
+I had some time this weekend. [INCTF](https://ctf.inctf.in) was running, so I decided to try reversing challenges for sometime. Here are the writeups for the challenges I managed to solve.
 
 
 #### ArchRide
@@ -45,7 +45,7 @@ This ELF is pretty small in code size. `main` looks like this
   }
 ```
 
-`check1` and `check2` are pretty simple functions. They check the input with hardcoded xor's values in the binary.
+`check1` and `check2` are pretty simple functions. They check the input with hardcoded xor values in the binary.
 Pretty easy to solve with [angr](https://github.com/angr/angr)
 Once the input passes both checks, a `key` of 13 bytes is calculated which is used to xor an embedded `bzip2` file in the binary.
 
@@ -234,7 +234,7 @@ rust compiled binary with name `jazz::main`. The function is a little complex to
 
 ![main](https://i.imgur.com/QwOmPNi.png)
 
-Here I have used [lighthouse](https://github.com/gaasedelen/lighthouse) to get some coverage information form some testcases. Decompilation doesn't yield much. We can use a pintool to taint and track the input from `argv[1]` to this function.
+Here I have used [lighthouse](https://github.com/gaasedelen/lighthouse) to get some coverage information from some testcases. Decompilation doesn't yield much. We can use a pintool to taint and track the input from `argv[1]` to this function.
 
 This takes us to this code
 
@@ -332,7 +332,7 @@ This program has absolutely no warranty.
 [1]    24231 segmentation fault (core dumped)  ./warmup -v
 ```
 
-We see that the binary is is actually binutils strings and crashes for some reason. I built the same version of strings and started renaming the global variabled required to `main`.
+We see that the binary is is actually binutils strings and crashes for some reason. I built the same version of strings and started renaming the global variables required to analyze `main`.
 
 This shows that an additional flag `-z` has been added to strings
 ```c
